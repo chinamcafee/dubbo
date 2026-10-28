@@ -48,7 +48,10 @@ import static org.apache.dubbo.spring.boot.util.DubboUtils.DUBBO_PREFIX;
             "io.micrometer.tracing.propagation.Propagator"
         })
 @AutoConfigureAfter(
-        name = "org.springframework.boot.actuate.autoconfigure.tracing.MicrometerTracingAutoConfiguration",
+        name = {
+            "org.springframework.boot.actuate.autoconfigure.tracing.MicrometerTracingAutoConfiguration",
+            "org.springframework.boot.micrometer.tracing.autoconfigure.MicrometerTracingAutoConfiguration"
+        },
         value = DubboAutoConfiguration.class)
 public class DubboMicrometerTracingAutoConfiguration {
 

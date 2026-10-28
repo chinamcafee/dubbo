@@ -225,14 +225,16 @@ public class DefaultApplicationDeployer extends AbstractDeployer<ApplicationMode
 
             loadApplicationConfigs();
 
+            // @since 3.2.3
+            // Spring Boot 4: observation registry and conventions must be ready
+            // before module deployment constructs ObservationSender/ReceiverFilter.
+            initObservationRegistry();
+
             initModuleDeployers();
 
             initMetricsReporter();
 
             initMetricsService();
-
-            // @since 3.2.3
-            initObservationRegistry();
 
             // @since 2.7.8
             startMetadataCenter();

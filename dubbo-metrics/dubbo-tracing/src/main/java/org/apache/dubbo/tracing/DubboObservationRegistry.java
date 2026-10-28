@@ -55,6 +55,8 @@ public class DubboObservationRegistry {
     }
 
     public void initObservationRegistry() {
+        registerDefaultObservationConventions(applicationModel);
+
         // If get ObservationRegistry.class from external(eg Spring.), use external.
         ObservationRegistry externalObservationRegistry =
                 applicationModel.getBeanFactory().getBean(ObservationRegistry.class);
@@ -104,5 +106,18 @@ public class DubboObservationRegistry {
         applicationModel.getBeanFactory().registerBean(registry);
         applicationModel.getBeanFactory().registerBean(tracer);
         applicationModel.getBeanFactory().registerBean(propagator);
+    }
+
+    private void registerDefaultObservationConventions(ApplicationModel applicationModel) {
+        try {
+            applicationModel.getBeanFactory().getBean(DubboClientObservationConvention.class);
+        } catch (Exception e) {
+            applicationModel.getBeanFactory().registerBean(DefaultDubboClientObservationConvention.getInstance());
+        }
+        try {
+            applicationModel.getBeanFactory().getBean(DubboServerObservationConvention.class);
+        } catch (Exception e) {
+            applicationModel.getBeanFactory().registerBean(DefaultDubboServerObservationConvention.getInstance());
+        }
     }
 }

@@ -40,8 +40,7 @@ import static org.apache.dubbo.common.constants.CommonConstants.PROVIDER;
  */
 @Activate(
         group = PROVIDER,
-        order = Integer.MIN_VALUE + 50,
-        onClass = "io.micrometer.observation.NoopObservationRegistry")
+        order = Integer.MIN_VALUE + 50)
 public class ObservationReceiverFilter implements Filter, BaseFilter.Listener, ScopeModelAware {
 
     private final ObservationRegistry observationRegistry;
@@ -49,8 +48,23 @@ public class ObservationReceiverFilter implements Filter, BaseFilter.Listener, S
     private final DubboServerObservationConvention serverObservationConvention;
 
     public ObservationReceiverFilter(ApplicationModel applicationModel) {
-        observationRegistry = applicationModel.getBeanFactory().getBean(ObservationRegistry.class);
-        serverObservationConvention = applicationModel.getBeanFactory().getBean(DubboServerObservationConvention.class);
+        ObservationRegistry registry = null;
+        try {
+            registry = applicationModel.getBeanFactory().getBean(ObservationRegistry.class);
+        } catch (Exception ignored) {
+            // Observation is optional; the filter stays inactive when Micrometer is absent.
+        }
+        this.observationRegistry = registry;
+
+        DubboServerObservationConvention convention = null;
+        try {
+            convention = applicationModel.getBeanFactory().getBean(DubboServerObservationConvention.class);
+        } catch (Exception ignored) {
+            // Fall back to the default convention during early module initialization.
+        }
+        this.serverObservationConvention = convention != null
+                ? convention
+                : DefaultDubboServerObservationConvention.getInstance();
     }
 
     @Override

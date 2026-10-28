@@ -22,6 +22,10 @@ import org.apache.dubbo.config.spring.context.event.DubboConfigInitEvent;
 import org.apache.dubbo.qos.protocol.QosProtocolWrapper;
 import org.apache.dubbo.rpc.model.ApplicationModel;
 import org.apache.dubbo.spring.boot.autoconfigure.observability.annotation.ConditionalOnDubboTracingEnable;
+import org.apache.dubbo.tracing.DefaultDubboClientObservationConvention;
+import org.apache.dubbo.tracing.DefaultDubboServerObservationConvention;
+import org.apache.dubbo.tracing.DubboClientObservationConvention;
+import org.apache.dubbo.tracing.DubboServerObservationConvention;
 
 import java.util.Arrays;
 
@@ -58,7 +62,10 @@ import static org.apache.dubbo.spring.boot.util.DubboUtils.DUBBO_PREFIX;
 @ConditionalOnProperty(prefix = DUBBO_PREFIX, name = "enabled", matchIfMissing = true)
 @AutoConfiguration(
         after = DubboMicrometerTracingAutoConfiguration.class,
-        afterName = "org.springframework.boot.actuate.autoconfigure.observation.ObservationAutoConfiguration")
+        afterName = {
+            "org.springframework.boot.actuate.autoconfigure.observation.ObservationAutoConfiguration",
+            "org.springframework.boot.micrometer.observation.autoconfigure.ObservationAutoConfiguration"
+        })
 @ConditionalOnDubboTracingEnable
 @ConditionalOnClass(name = {"io.micrometer.observation.Observation", "io.micrometer.tracing.Tracer"})
 public class DubboObservationAutoConfiguration
@@ -78,6 +85,18 @@ public class DubboObservationAutoConfiguration
     @ConditionalOnClass(name = "io.micrometer.observation.ObservationRegistry")
     ObservationRegistry observationRegistry() {
         return ObservationRegistry.create();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    DubboClientObservationConvention dubboClientObservationConvention() {
+        return DefaultDubboClientObservationConvention.getInstance();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    DubboServerObservationConvention dubboServerObservationConvention() {
+        return DefaultDubboServerObservationConvention.getInstance();
     }
 
     @Bean
@@ -105,6 +124,12 @@ public class DubboObservationAutoConfiguration
             applicationModel
                     .getBeanFactory()
                     .registerBean(beanFactory.getBean(io.micrometer.tracing.propagation.Propagator.class));
+            applicationModel
+                    .getBeanFactory()
+                    .registerBean(beanFactory.getBean(DubboClientObservationConvention.class));
+            applicationModel
+                    .getBeanFactory()
+                    .registerBean(beanFactory.getBean(DubboServerObservationConvention.class));
         } catch (NoSuchBeanDefinitionException e) {
             logger.info("Please use a version of micrometer higher than 1.10.0: " + e.getMessage());
         }

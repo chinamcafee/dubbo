@@ -47,7 +47,11 @@ import static org.apache.dubbo.spring.boot.util.DubboUtils.DUBBO_PREFIX;
 @ConditionalOnProperty(prefix = DUBBO_PREFIX, name = "enabled", matchIfMissing = true)
 @AutoConfiguration(
         before = DubboMicrometerTracingAutoConfiguration.class,
-        afterName = "org.springframework.boot.actuate.autoconfigure.tracing.OpenTelemetryAutoConfiguration")
+        afterName = {
+            "org.springframework.boot.actuate.autoconfigure.tracing.OpenTelemetryAutoConfiguration",
+            "org.springframework.boot.opentelemetry.autoconfigure.OpenTelemetrySdkAutoConfiguration",
+            "org.springframework.boot.micrometer.tracing.opentelemetry.autoconfigure.OpenTelemetryTracingAutoConfiguration"
+        })
 @ConditionalOnDubboTracingEnable
 @ConditionalOnClass(
         name = {
